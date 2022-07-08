@@ -42,13 +42,16 @@ import json
 import os
 import sys
 import time
+from turtle import color
 import cv2
+import os
+os.environ.update({"QT_QPA_PLATFORM_PLUGIN_PATH": "/home/yilong/.local/lib/python3.6/site-packages//PyQt5/Qt5/plugins/xcbglintegrations/libqxcb-glx-integration.so"})
 import pickle
 import numpy as np
 from matplotlib import pyplot as plt
 
 from autolab_core import YamlConfig, Logger
-from perception import (BinaryImage, CameraIntrinsics, ColorImage, DepthImage,
+from autolab_core import (BinaryImage, CameraIntrinsics, ColorImage, DepthImage,
                         RgbdImage)
 from visualization import Visualizer2D as vis
 
@@ -64,6 +67,7 @@ if __name__ == "__main__":
     input_msg = sys.stdin.read().split('\n')
     color_img_filename = input_msg[0]
     depth_img_filename = input_msg[1]
+    print(color_img_filename)
     sampled_grasps_filename = input_msg[2]
     camera_intr_filename = input_msg[3]
     model_name = input_msg[4]
@@ -102,14 +106,19 @@ if __name__ == "__main__":
     camera_intr = CameraIntrinsics.load(camera_intr_filename)
 
     # images
+    #color_img_filename = '/home/yilong/color_0.png'
     color_cvmat = cv2.imread(color_img_filename)
     depth_cvmat = cv2.imread(depth_img_filename) # load as 8UC3
     depth_cvmat = cv2.cvtColor(depth_cvmat, cv2.COLOR_BGR2GRAY) # 8UC1
     depth_cvmat = depth_cvmat.astype(np.float32) * 1.0/255.0 # 32FC1
 
-    # cv2.imshow('img', color_cvmat)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
+    with open('/home/yilong/git_ws/src/ur10e_robotiq/amiga_manipulation/data/tmp/depth.npy', 'rb') as f:
+        depth_cvmat = np.load(f)
+        depth_cvmat = depth_cvmat[..., None]
+    with open('/home/yilong/git_ws/src/ur10e_robotiq/amiga_manipulation/data/tmp/rgb.npy', 'rb') as f:
+        color_cvmat = np.load(f)
+        color_cvmat = color_cvmat[:,:,:3]
+
 
     # create wrapped BerkeleyAutomation/perception RGB and depth images
     color_im = ColorImage(color_cvmat, frame=camera_intr.frame, encoding="bgr8")
@@ -160,30 +169,32 @@ if __name__ == "__main__":
 
 
     # # Query policy for best grasp
-    # policy_start = time.time()
-    # action = policy(state)
-    # print("Planning took %.3f sec" % (time.time() - policy_start))
-    # print("Gripper pose: ", action.grasp.pose())
+    policy_start = time.time()
+    action = policy(state)
+    print("Planning took %.3f sec" % (time.time() - policy_start))
+    print("Gripper pose: ", action.grasp.pose())
     #
     # # Position: [x y z]
     # # Orientation: [qw qx qy qz]
-    # grasp_candidate = np.array([action.grasp.pose().to_frame,
-    #                             action.grasp.pose().position,
-    #                             action.grasp.pose().quaternion,
-    #                             action.q_value])
+    grasp_candidate = np.array([action.grasp.pose().to_frame,
+                                 action.grasp.pose().position,
+                                 action.grasp.pose().quaternion,
+                                 action.q_value])
     #
     # # serialize candidates
-    # pickle_sols = open(sampled_grasps_filename, "wb")
-    # pickle.dump([grasp_candidate], pickle_sols, protocol=2)
-    # pickle_sols.close()
+    pickle_sols = open(sampled_grasps_filename, "wb")
+    pickle.dump([grasp_candidate], pickle_sols, protocol=2)
+    pickle_sols.close()
     #
     # # Vis final grasp.
-    # if policy_config["vis"]["final_grasp"]:
-    #     vis.figure(size=(10, 10))
-    #     vis.imshow(rgbd_im.depth,
-    #                vmin=policy_config["vis"]["vmin"],
-    #                vmax=policy_config["vis"]["vmax"])
-    #     vis.grasp(action.grasp, scale=2.5, show_center=False, show_axis=True)
-    #     vis.title("Planned grasp at depth {0:.3f}m with Q={1:.3f}".format(
-    #         action.grasp.depth, action.q_value))
-    #     vis.show()
+    print("-------------------------------------------------------------------")
+    print("visualizing")
+    if policy_config["vis"]["final_grasp"]:
+         vis.figure(size=(10, 10))
+         vis.imshow(rgbd_im.depth,
+                    vmin=policy_config["vis"]["vmin"],
+                    vmax=policy_config["vis"]["vmax"])
+         vis.grasp(action.grasp, scale=2.5, show_center=False, show_axis=True)
+         vis.title("Planned grasp at depth {0:.3f}m with Q={1:.3f}".format(
+             action.grasp.depth, action.q_value))
+         vis.show()

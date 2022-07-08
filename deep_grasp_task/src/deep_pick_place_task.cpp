@@ -236,12 +236,13 @@ void DeepPickPlaceTask::init()
     /****************************************************
   ---- *               Close Hand                      *
      ***************************************************/
-    {
-      auto stage = std::make_unique<stages::MoveTo>("close hand", sampling_planner);
-      stage->properties().property("group").configureInitFrom(Stage::PARENT, hand_group_name_);
-      stage->setGoal(hand_close_pose_);
-      grasp->insert(std::move(stage));
-    }
+    // {
+    //   auto stage = std::make_unique<stages::MoveTo>("close hand", sampling_planner);
+      
+    //   //stage->properties().property("group").configureInitFrom(Stage::PARENT, hand_group_name_);
+    //   stage->setGoal(hand_close_pose_);
+    //   grasp->insert(std::move(stage));
+    // }
 
     /****************************************************
   .... *               Attach Object                      *

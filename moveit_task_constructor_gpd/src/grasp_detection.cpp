@@ -159,8 +159,10 @@ void GraspDetection::sampleGrasps()
         Eigen::Translation3d(grasps.at(id)->getPosition()) * Eigen::Quaterniond(grasps.at(id)->getOrientation());
 
     const Eigen::Isometry3d transform_base_grasp = trans_base_cam_ * transform_cam_opt_ * transform_opt_grasp;
-    const Eigen::Vector3d trans = transform_base_grasp.translation();
-    const Eigen::Quaterniond rot(transform_base_grasp.rotation());
+    
+    const Eigen::Vector3d trans = transform_opt_grasp.translation(); // modified
+    const Eigen::Quaterniond rot(transform_opt_g
+rasp.rotation());
 
     // convert back to PoseStamped
     geometry_msgs::PoseStamped grasp_pose;
@@ -170,7 +172,7 @@ void GraspDetection::sampleGrasps()
     grasp_pose.pose.position.z = trans.z();
 
     grasp_pose.pose.orientation.w = rot.w();
-    grasp_pose.pose.orientation.x = rot.x();
+    grasp_pose.pose.orientatifeedon.x = rot.x();
     grasp_pose.pose.orientation.y = rot.y();
     grasp_pose.pose.orientation.z = rot.z();
 

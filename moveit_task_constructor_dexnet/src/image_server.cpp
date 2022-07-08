@@ -106,7 +106,10 @@ bool ImageServer::saveImage(const sensor_msgs::Image::ConstPtr& msg, const std::
   }
   else if (msg->encoding == "32FC1")
   {
-    cv_ptr->image.convertTo(img_converted, CV_8UC3, 255.0);  // conver to BGR and scale
+    cv_ptr->image.convertTo(img_converted, CV_8UC3, 255.0);  // convert to BGR and scale
+  }
+  else if(msg->encoding == "bgra8"){
+    cv_ptr->image.convertTo(img_converted, CV_8UC3);
   }
   else
   {
